@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Predicción de Cáncer de Mama</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; max-width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        select, button { width: 100%; padding: 10px; font-size: 16px; }
+        button { background-color: #007BFF; color: white; border: none; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .resultado { margin-top: 20px; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>Analizador de Masas Mamarias</h2>
+    <p>Ingrese los 5 parámetros principales arrojados por el análisis:</p>
+
+    <form id="formularioPrediccion">
+        <div class="form-group">
+            <label>1. Perímetro Medio:</label>
+            <select id="param1">
+                <option value="0">Normal / Bajo</option>
+                <option value="1">Anormalmente Alto</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>2. Puntos Cóncavos Medios:</label>
+            <select id="param2">
+                <option value="0">Normal / Bajo</option>
+                <option value="1">Anormalmente Alto</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>3. Radio Máximo (Peor caso):</label>
+            <select id="param3">
+                <option value="0">Normal / Bajo</option>
+                <option value="1">Anormalmente Alto</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>4. Perímetro Máximo (Peor caso):</label>
+            <select id="param4">
+                <option value="0">Normal / Bajo</option>
+                <option value="1">Anormalmente Alto</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>5. Puntos Cóncavos Máximos (Peor caso):</label>
+            <select id="param5">
+                <option value="0">Normal / Bajo</option>
+                <option value="1">Anormalmente Alto</option>
+            </select>
+        </div>
+
+        <button type="submit">Generar Predicción</button>
+    </form>
+
+    <div id="cajaResultado" class="resultado" style="display: none;"></div>
+
+    <script>
+        document.getElementById('formularioPrediccion').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+
+            const f1 = parseInt(document.getElementById('param1').value);
+            const f2 = parseInt(document.getElementById('param2').value);
+            const f3 = parseInt(document.getElementById('param3').value);
+            const f4 = parseInt(document.getElementById('param4').value);
+            const f5 = parseInt(document.getElementById('param5').value);
+
+            const arregloFeatures = [f1, f2, f3, f4, f5];
+
+            try {
+                const respuesta = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ features: arregloFeatures })
+                });
+
+                const data = await respuesta.json();
+
+                const cajaResultado = document.getElementById('cajaResultado');
+                cajaResultado.style.display = "block";
+                cajaResultado.innerText = "Resultado de la predicción: Tumor " + data.diagnostico;
+                
+                if (data.diagnostico === "Maligno") {
+                    cajaResultado.style.backgroundColor = "#f8d7da";
+                    cajaResultado.style.color = "#721c24";
+                } else {
+                    cajaResultado.style.backgroundColor = "#d4edda"; 
+                    cajaResultado.style.color = "#155724";
+                }
+
+            } catch (error) {
+                console.error("Hubo un problema al conectar con el servidor", error);
+                alert("Asegúrate de que el servidor Flask (app.py) esté corriendo en el puerto 5000.");
+            }
+        });
+    </script>
+</body>
+</html>
